@@ -37,7 +37,7 @@ class JSONUtility {
 
 class SocketObject: ObservableObject {
     static var shared = SocketObject()
-    let ipAddress = "http://172.18.23.27:9090"
+    let ipAddress = "http://172.18.23.29:9090"
     let service = Service()
     var manager: SocketManager!
     var socket: SocketIOClient!
@@ -973,7 +973,7 @@ struct ConversationDetailView: View {
 }
 
 class Service {
-    let ipAddress = "172.18.23.27:9090"
+    let ipAddress = "172.18.23.29:9090"
     let conversationId = "10.0.2.2"
     let currentUser = "participant2"
     func fetchMessages(conversationId: String, completion: @escaping ([String: Any]?, Error?) -> Void) {
