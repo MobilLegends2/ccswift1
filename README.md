@@ -15,7 +15,7 @@ Utilisez ce code avec précaution.
 
 Cela clonera le dépôt CrossChat dans un répertoire nommé ccswift1.
 Télécharger le ZIP:
-Accédez au dépôt CrossChat sur GitHub : [https://github.com/d-date/google-mlkit-swiftpm](https://github.com/MobilLegends2/ccswift1/tree/main)
+Accédez au dépôt CrossChat sur GitHub : https://github.com/MobilLegends2/ccswift1/tree/main
 Cliquez sur le bouton "Code" puis sélectionnez "Télécharger le ZIP".
 Décompressez le fichier ZIP téléchargé dans un répertoire de votre choix.
 
