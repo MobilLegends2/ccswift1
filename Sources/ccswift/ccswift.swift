@@ -976,17 +976,13 @@ class Service {
     let conversationId = "10.0.2.2"
     let currentUser = "participant2"
  func fetchMessages(conversationId: String, completion: @escaping ([String: Any]?, Error?) -> Void) {
-    guard let apiKey = "aa" else {
-        let error = NSError(domain: "ApiKeyError", code: 0, userInfo: [NSLocalizedDescriptionKey: "API key is nil"])
-        completion(nil, error)
-        return
-    }
+
     
     let url = URL(string: "http://\(ipAddress)/conversations/\(conversationId)/messages")!
     
     var request = URLRequest(url: url)
     request.httpMethod = "GET"
-    request.setValue(apiKey, forHTTPHeaderField: "x-secret-key") // Adding secret key header
+    request.setValue("aa", forHTTPHeaderField: "x-secret-key") // Adding secret key header
     
     URLSession.shared.dataTask(with: request) { data, response, error in
         guard let data = data, error == nil else {
