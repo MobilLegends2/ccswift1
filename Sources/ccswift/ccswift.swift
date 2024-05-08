@@ -1030,24 +1030,29 @@ class Service {
             print("Message sent successfully")
         }.resume()
     }
-    func fetchConversations(currentUser: String, completion: @escaping ([[String: Any]]?, Error?) -> Void) {
-        let url = URL(string: "http://\(ipAddress)/conversation/\(currentUser)")!
+ func fetchConversations(currentUser: String, completion: @escaping ([[String: Any]]?, Error?) -> Void) {
+    let url = URL(string: "http://\(ipAddress)/conversation/\(currentUser)")!
+    
+    var request = URLRequest(url: url)
+    request.httpMethod = "GET"
+    request.setValue("aa", forHTTPHeaderField: "x-secret-key") // Adding secret key header
+    
+    URLSession.shared.dataTask(with: request) { data, response, error in
+        guard let data = data, error == nil else {
+            completion(nil, error)
+            return
+        }
         
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            guard let data = data, error == nil else {
-                completion(nil, error)
-                return
+        do {
+            if let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [[String: Any]] {
+                completion(jsonResponse, nil)
             }
-            
-            do {
-                if let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [[String: Any]] {
-                    completion(jsonResponse, nil)
-                }
-            } catch {
-                completion(nil, error)
-            }
-        }.resume()
-    }
+        } catch {
+            completion(nil, error)
+        }
+    }.resume()
+}
+
 func createOrGetConversation(clickedUserId: String, completion: @escaping (String?, Error?) -> Void) {
     let url = URL(string: "http://\(ipAddress)/conversation/\(currentUser)/\(clickedUserId)")!
     
