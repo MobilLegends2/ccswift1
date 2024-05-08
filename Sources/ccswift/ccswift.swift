@@ -1036,27 +1036,37 @@ class Service {
             }
         }.resume()
     }
-    func createOrGetConversation(clickedUserId: String,  completion: @escaping (String?, Error?) -> Void) {
-        let url = URL(string: "http://\(ipAddress)/conversation/\(currentUser)/\(clickedUserId)")!
+func createOrGetConversation(clickedUserId: String, secretKey: String, completion: @escaping (String?, Error?) -> Void) {
+    let url = URL(string: "http://\(ipAddress)/conversation/\(currentUser)/\(clickedUserId)")!
+    
+    var request = URLRequest(url: url)
+    request.httpMethod = "GET"
+    request.setValue(secretKey, forHTTPHeaderField: "x-secret-key") // Adding secret key header
+    
+    URLSession.shared.dataTask(with: request) { data, response, error in
+        guard let data = data, error == nil else {
+            completion(nil, error)
+            return
+        }
         
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            guard let data = data, error == nil else {
-                completion(nil, error)
-                return
+        if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 403 {
+            let forbiddenError = NSError(domain: "ForbiddenError", code: 403, userInfo: [NSLocalizedDescriptionKey: "Forbidden: Invalid secret key"])
+            completion(nil, forbiddenError)
+            return
+        }
+        
+        do {
+            if let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any], let conversationId = jsonResponse["_id"] as? String {
+                completion(conversationId, nil)
+            } else {
+                completion(nil, NSError(domain: "ServiceError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to create or get conversation"]))
             }
-            
-            do {
-                if let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any], let conversationId = jsonResponse["_id"] as? String {
-                    completion(conversationId, nil)
-                    
-                } else {
-                    completion(nil, NSError(domain: "ServiceError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to create or get conversation"]))
-                }
-            } catch {
-                completion(nil, error)
-            }
-        }.resume()
-    }
+        } catch {
+            completion(nil, error)
+        }
+    }.resume()
+}
+
     func addReaction( messageId: String, reaction: String) {
         let url = URL(string: "http://\(ipAddress)/message/\(messageId)/emoji")!
         
