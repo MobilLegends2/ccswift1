@@ -977,7 +977,7 @@ class Service {
     let conversationId = "10.0.2.2"
     let currentUser = "participant2"
  func fetchMessages(conversationId: String, completion: @escaping ([String: Any]?, Error?) -> Void) {
-    guard let apiKey = ContentView.apiKey else {
+    guard let apiKey = apiKey else {
         let error = NSError(domain: "ApiKeyError", code: 0, userInfo: [NSLocalizedDescriptionKey: "API key is nil"])
         completion(nil, error)
         return
@@ -1058,7 +1058,7 @@ func createOrGetConversation(clickedUserId: String, completion: @escaping (Strin
     
     var request = URLRequest(url: url)
     request.httpMethod = "GET"
-    request.setValue(ContentView.apiKey, forHTTPHeaderField: "x-secret-key") // Adding secret key header
+    request.setValue(apiKey, forHTTPHeaderField: "x-secret-key") // Adding secret key header
     
     URLSession.shared.dataTask(with: request) { data, response, error in
         guard let data = data, error == nil else {
@@ -1111,7 +1111,7 @@ func createOrGetConversation(clickedUserId: String, completion: @escaping (Strin
         
         var request = URLRequest(url: url)
         request.httpMethod = "DELETE"
-            request.setValue(ContentView.apiKey, forHTTPHeaderField: "x-secret-key") // Adding secret key header
+            request.setValue(apiKey, forHTTPHeaderField: "x-secret-key") // Adding secret key header
 
         URLSession.shared.dataTask(with: request) { data, response, error in
             guard let _ = data, error == nil else {
