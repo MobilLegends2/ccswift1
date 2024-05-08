@@ -976,24 +976,41 @@ class Service {
     let ipAddress = "192.168.170.203:8080"
     let conversationId = "10.0.2.2"
     let currentUser = "participant2"
-    func fetchMessages(conversationId: String, completion: @escaping ([String: Any]?, Error?) -> Void) {
-        let url = URL(string: "http://\(ipAddress)/conversations/\(conversationId)/messages")!
-        
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            guard let data = data, error == nil else {
-                completion(nil, error)
-                return
-            }
-            
-            do {
-                if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                    completion(json, nil)
-                }
-            } catch {
-                completion(nil, error)
-            }
-        }.resume()
+ func fetchMessages(conversationId: String, completion: @escaping ([String: Any]?, Error?) -> Void) {
+    guard let apiKey = ContentView.apiKey else {
+        let error = NSError(domain: "ApiKeyError", code: 0, userInfo: [NSLocalizedDescriptionKey: "API key is nil"])
+        completion(nil, error)
+        return
     }
+    
+    let url = URL(string: "http://\(ipAddress)/conversations/\(conversationId)/messages")!
+    
+    var request = URLRequest(url: url)
+    request.httpMethod = "GET"
+    request.setValue(apiKey, forHTTPHeaderField: "x-secret-key") // Adding secret key header
+    
+    URLSession.shared.dataTask(with: request) { data, response, error in
+        guard let data = data, error == nil else {
+            completion(nil, error)
+            return
+        }
+        
+        if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 403 {
+            let forbiddenError = NSError(domain: "ForbiddenError", code: 403, userInfo: [NSLocalizedDescriptionKey: "Forbidden: Invalid secret key"])
+            completion(nil, forbiddenError)
+            return
+        }
+        
+        do {
+            if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                completion(json, nil)
+            }
+        } catch {
+            completion(nil, error)
+        }
+    }.resume()
+}
+
     
     func sendMessage(conversationId: String, message: String, type: String) {
         let url = URL(string: "http://\(ipAddress)/conversations/\(conversationId)/messages")!
@@ -1041,7 +1058,7 @@ func createOrGetConversation(clickedUserId: String, secretKey: String, completio
     
     var request = URLRequest(url: url)
     request.httpMethod = "GET"
-    request.setValue(secretKey, forHTTPHeaderField: "x-secret-key") // Adding secret key header
+    request.setValue(ContentView.apiKey, forHTTPHeaderField: "x-secret-key") // Adding secret key header
     
     URLSession.shared.dataTask(with: request) { data, response, error in
         guard let data = data, error == nil else {
@@ -1094,7 +1111,8 @@ func createOrGetConversation(clickedUserId: String, secretKey: String, completio
         
         var request = URLRequest(url: url)
         request.httpMethod = "DELETE"
-        
+            request.setValue(ContentView.apiKey, forHTTPHeaderField: "x-secret-key") // Adding secret key header
+
         URLSession.shared.dataTask(with: request) { data, response, error in
             guard let _ = data, error == nil else {
                 completion(error)
