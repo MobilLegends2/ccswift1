@@ -1053,7 +1053,7 @@ class Service {
             }
         }.resume()
     }
-func createOrGetConversation(clickedUserId: String, secretKey: String, completion: @escaping (String?, Error?) -> Void) {
+func createOrGetConversation(clickedUserId: String, completion: @escaping (String?, Error?) -> Void) {
     let url = URL(string: "http://\(ipAddress)/conversation/\(currentUser)/\(clickedUserId)")!
     
     var request = URLRequest(url: url)
