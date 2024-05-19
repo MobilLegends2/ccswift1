@@ -873,7 +873,7 @@ struct ConversationDetailView: View {
 class Service {
     let ipAddress = "172.18.3.78:8080"
     let conversationId = "10.0.2.2"
-    let currentUser = "Bob"
+    let currentUser = "Alice"
  func fetchMessages(conversationId: String, completion: @escaping ([String: Any]?, Error?) -> Void) {
 
     
