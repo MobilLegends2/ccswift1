@@ -635,7 +635,7 @@ public struct ChatsView: View {
 
     let service = Service() // Create an instance of the Service class
     var users: [User] // Accept users as parameter
-    let currentUser: String
+    static var currentUser: String = "" // Static variable to store currentUser
     var apiKey: String
     var configuration: ChatsViewConfiguration
 
@@ -650,7 +650,7 @@ public struct ChatsView: View {
     // Initializer
     public init(users: [User], currentUser: String, apiKey: String, configuration: ChatsViewConfiguration = ChatsViewConfiguration()) {
         self.users = users
-        self.currentUser = currentUser
+        ChatsView.currentUser = currentUser // Assigning to static variable
         self.apiKey = apiKey
         self.configuration = configuration
     }
@@ -873,7 +873,7 @@ struct ConversationDetailView: View {
 class Service {
     let ipAddress = "172.18.3.78:8080"
     let conversationId = "10.0.2.2"
-    let currentUser = ContentView.currentUser
+    let currentUser = ChatsView.currentUser
  func fetchMessages(conversationId: String, completion: @escaping ([String: Any]?, Error?) -> Void) {
 
     
