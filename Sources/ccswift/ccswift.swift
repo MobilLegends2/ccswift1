@@ -4,6 +4,30 @@ import SocketIO
 //import AgoraRtcKit
 import AVFoundation
 
+public struct ChatsViewConfiguration {
+    public var searchBarPlaceholder: String
+    public var backgroundColor: Color
+    public var font: Font
+    public var incomingMessageColor: Color
+    public var outgoingMessageColor: Color
+    
+    public init(
+        searchBarPlaceholder: String = "Search",
+        backgroundColor: Color = Color.white,
+        font: Font = Font.body,
+        incomingMessageColor: Color = Color.gray,
+        outgoingMessageColor: Color = Color.blue
+    ) {
+        self.searchBarPlaceholder = searchBarPlaceholder
+        self.backgroundColor = backgroundColor
+        self.font = font
+        self.incomingMessageColor = incomingMessageColor
+        self.outgoingMessageColor = outgoingMessageColor
+    }
+}
+
+
+
 class JSONUtility {
 
     class func getJson(objects: [Any]?) -> Any? {
@@ -735,7 +759,8 @@ public struct ChatsView: View {
     var users: [User] // Accept users as parameter
     let currentUser: String
     var apiKey: String
-    
+    var configuration: ChatsViewConfiguration
+
     
     var filteredConversations: [Conversation] {
         if searchText.isEmpty {
@@ -745,124 +770,109 @@ public struct ChatsView: View {
         }
     }
     // Initializer
-    public init(users: [User], currentUser: String, apiKey: String) {
+    public init(users: [User], currentUser: String, apiKey: String, configuration: ChatsViewConfiguration = ChatsViewConfiguration()) {
         self.users = users
         self.currentUser = currentUser
         self.apiKey = apiKey
+        self.configuration = configuration
     }
     
     public var body: some View {
-        NavigationView {
-            VStack {
-                SearchBar(text: $searchText)
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack {
-                        ForEach(users) { user in
-                            UserView(user: user)
-                                .padding(.horizontal, 10)
-                                .onTapGesture {
-                                    // Log when the user is pressed
-                                    print("User \(user.name) pressed")
+          NavigationView {
+              VStack {
+                  SearchBar(text: $searchText, placeholder: configuration.searchBarPlaceholder)
+                  ScrollView(.horizontal, showsIndicators: false) {
+                      HStack {
+                          ForEach(users) { user in
+                              UserView(user: user)
+                                  .padding(.horizontal, 10)
+                                  .onTapGesture {
+                                      service.createOrGetConversation(clickedUserId: user.name) { conversationId, error in
+                                          if let error = error {
+                                              print("Error creating/getting conversation: \(error)")
+                                              return
+                                          }
+                                          if let conversationId = conversationId {
+                                              DispatchQueue.main.async {
+                                                  self.selectedConversationId = conversationId
+                                                  self.navigateToMessengerView = true
+                                                  self.senderN = user.name
+                                              }
+                                          }
+                                      }
+                                  }
+                          }
+                      }
+                      .padding(.vertical)
+                      .background(
+                          NavigationLink(
+                              destination: MessengerView(senderName: senderN ?? "", conversationId: selectedConversationId ?? ""),
+                              tag: true,
+                              selection: $navigateToMessengerView
+                          ) {
+                              EmptyView()
+                          }
+                          .navigationBarBackButtonHidden(true)
+                      )
+                  }
+                  
+                  Divider()
+                  
+                  List {
+                      ForEach(filteredConversations) { conversation in
+                          NavigationLink(destination: MessengerView(senderName: conversation.participantName, conversationId: conversation.id)) {
+                              ConversationRow(conversation: conversation, font: configuration.font)
+                          }
+                          .swipeActions {
+                              Button(action: {
+                                  self.setConversationToDelete(conversation)
+                              }) {
+                                  Label("Delete", systemImage: "trash")
+                              }
+                              .tint(.red)
+                          }
+                      }
+                  }
+                  .listStyle(PlainListStyle())
+              }
+              .navigationTitle("CrossChat")
+              .navigationBarBackButtonHidden(true)
+              .alert(isPresented: $showingDeleteAlert) {
+                  Alert(
+                      title: Text("Delete Conversation"),
+                      message: Text("Are you sure you want to delete this conversation?"),
+                      primaryButton: .cancel(),
+                      secondaryButton: .destructive(Text("Delete")) {
+                          if let conversation = conversationToDelete {
+                              self.deleteConversation(conversation)
+                          }
+                      }
+                  )
+              }
+              .onAppear {
+                  service.fetchConversations(currentUser: service.currentUser) { json, error in
+                      if let error = error {
+                          print("Error fetching conversations: \(error)")
+                          return
+                      }
+                      if let conversationsData = json {
+                          self.conversations = conversationsData.compactMap { conversationData in
+                              let participants = conversationData["participants"] as? [String] ?? ["", ""]
+                              let participantName = participants.first(where: { $0 != service.currentUser }) ?? ""
+                              let convId = conversationData["_id"] as? String ?? ""
+                              return Conversation(
+                                  id: convId,
+                                  participantName: participantName,
+                                  lastMessage: (conversationData["messages"] as? [[String: Any]])?.last?["content"] as? String ?? "",
+                                  timestamp: Date()
+                              )
+                          }
+                      }
+                  }
+              }
+          }
+      }
 
-                                    // Call createOrGetConversation to create or retrieve conversation ID
-                                    service.createOrGetConversation(clickedUserId: user.name) { conversationId, error in
-                                        if let error = error {
-                                            print("Error creating/getting conversation: \(error)")
-                                            return
-                                        }
-                                        if let conversationId = conversationId {
-                                            // Log the obtained conversation ID
-                                            print("Obtained conversation ID for \(user.name): \(conversationId)")
-                                            
-                                            // Now, trigger navigation to MessengerView with the obtained conversation ID
-                                            DispatchQueue.main.async {
-                                                self.selectedConversationId = conversationId
-                                                self.navigateToMessengerView = true
-                                                self.senderN = user.name
-                                            }
-                                        }
-                                    }
-                                }
-                        }
-                    }
-                    .padding(.vertical)
-                    .background(
-                        NavigationLink(
-                            destination: MessengerView(senderName: senderN ?? "", conversationId: selectedConversationId ?? ""),
-                            tag: true,
-                            selection: $navigateToMessengerView
-                        ) {
-                            EmptyView()
-                        }
-                            .navigationBarBackButtonHidden(true) // Hide the navigation back button
-
-                    )
-                }
-                
-                Divider()
-                
-                List {
-                    ForEach(filteredConversations) { conversation in
-                        NavigationLink(destination: MessengerView(senderName: conversation.participantName, conversationId:conversation.id)) {
-                            ConversationRow(conversation: conversation)
-                        }
-                        .swipeActions {
-                            Button(action: {
-                                self.setConversationToDelete(conversation)
-                            }) {
-                                Label("Delete", systemImage: "trash")
-                            }
-                            .tint(.red)
-                        }
-                    }
-                }
-                .listStyle(PlainListStyle())
-            }
-            .navigationTitle("CrossChat")
-            .navigationBarBackButtonHidden(true)
-            .alert(isPresented: $showingDeleteAlert) {
-                Alert(
-                    title: Text("Delete Conversation"),
-                    message: Text("Are you sure you want to delete this conversation?"),
-                    primaryButton: .cancel(),
-                    secondaryButton: .destructive(Text("Delete")) {
-                        if let conversation = conversationToDelete {
-                            self.deleteConversation(conversation)
-                            
-                        }
-                    }
-                )
-            }
-            .onAppear {
-                // Fetch conversations when the view appears
-                service.fetchConversations(currentUser: service.currentUser) { json, error in
-                    if let error = error {
-                        print("Error fetching conversations: \(error)")
-                        return
-                    }
-
-                    if let conversationsData = json {
-                        self.conversations = conversationsData.compactMap { conversationData in
-                            let participants = conversationData["participants"] as? [String] ?? ["", ""]
-                            let participantName = participants.first(where: { $0 != service.currentUser }) ?? ""
-                            let convId = conversationData["_id"] as? String ?? "" // Get the conversation ID
-
-                            print(participants)
-                            print(participantName)
-
-                            return Conversation(
-                                id:convId ,
-                                participantName: participantName,
-                                lastMessage: (conversationData["messages"] as? [[String: Any]])?.last?["content"] as? String ?? "",
-                                timestamp: Date() // You can parse the timestamp here
-                            )
-                        }
-                    }
-
-                }
-            }
-        }
-    }
 
     
     private func setConversationToDelete(_ conversation: Conversation) {
@@ -907,20 +917,21 @@ struct UserView: View {
 
 struct ConversationRow: View {
     let conversation: Conversation
+    let font: Font
 
     var body: some View {
         HStack {
-            Image(conversation.participantName) // Use a default image or placeholder if the user's image is not available
+            Image(conversation.participantName)
                 .resizable()
                 .frame(width: 40, height: 40)
                 .clipShape(Circle())
                 .overlay(Circle().stroke(Color.white, lineWidth: 2))
                 .shadow(radius: 3)
-                .padding(.trailing, 10) // Add some spacing between the image and text
+                .padding(.trailing, 10)
             
             VStack(alignment: .leading) {
                 Text(conversation.participantName)
-                    .font(.headline)
+                    .font(font)
                 Text(conversation.lastMessage)
                     .foregroundColor(.gray)
                 Text("\(conversation.timestamp)")
@@ -929,19 +940,21 @@ struct ConversationRow: View {
             }
             .padding(.vertical, 5)
             
-            Spacer() // Add spacer to push the content to the leading edge
+            Spacer()
         }
-        .padding(.horizontal) // Add horizontal padding to the whole row
+        .padding(.horizontal)
     }
 }
 
 
+
 struct SearchBar: View {
     @Binding var text: String
+    var placeholder: String
 
     var body: some View {
         HStack {
-            TextField("Search", text: $text)
+            TextField(placeholder, text: $text)
                 .padding(7)
                 .background(Color(.systemGray6))
                 .cornerRadius(8)
