@@ -3,7 +3,6 @@ import SwiftUI
 import SocketIO
 //import AgoraRtcKit
 import AVFoundation
-import ContentView
 
 public struct ChatsViewConfiguration {
     public var searchBarPlaceholder: String
