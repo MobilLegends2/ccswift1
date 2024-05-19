@@ -635,7 +635,11 @@ public struct ChatsView: View {
 
     let service = Service() // Create an instance of the Service class
     var users: [User] // Accept users as parameter
-    static var currentUser: String = "" // Static variable to store currentUser
+    static var currentUser: String {
+        get { _currentUser }
+        set { _currentUser = newValue }
+    }
+    private static var _currentUser: String = ""; 
     var apiKey: String
     var configuration: ChatsViewConfiguration
 
@@ -649,11 +653,12 @@ public struct ChatsView: View {
 
     // Initializer
     public init(users: [User], currentUser: String, apiKey: String, configuration: ChatsViewConfiguration = ChatsViewConfiguration()) {
-        self.users = users
-        ChatsView.currentUser = currentUser // Assigning to static variable
-        self.apiKey = apiKey
-        self.configuration = configuration
-    }
+           self.users = users
+           ChatsView.currentUser = currentUser // Update static variable
+           self.apiKey = apiKey
+           self.configuration = configuration
+       }
+   
 
     public var body: some View {
         NavigationView {
