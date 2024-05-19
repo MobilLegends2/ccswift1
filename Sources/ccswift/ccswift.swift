@@ -28,6 +28,7 @@ public struct ChatsViewConfiguration {
 
 
 
+
 class JSONUtility {
 
     class func getJson(objects: [Any]?) -> Any? {
@@ -232,173 +233,50 @@ struct MessagesStructure: Identifiable {
 // View for outgoing message
 struct OutgoingDoubleLineMessage: View {
     let message: MessagesStructure
-    let outgoingBubble = Color(#colorLiteral(red: 0.03921568627, green: 0.5176470588, blue: 1, alpha: 1))
-    let senderName = "Arafet"
-    let service = Service()
-    
+    var bubbleColor: Color
+
     var body: some View {
-        HStack {
-            if message.type == "attachment" {
-                // Display the image fetched from the attachment URL
-                AsyncImage(url: URL(string: message.content)) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 300, height: 200) // Adjust size as needed
-                            .clipped()
-                    case .failure:
-                        // Placeholder or error handling image
-                        Image(systemName: "photo")
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 300, height: 200) // Adjust size as needed
-                            .clipped()
-                    case .empty:
-                        // Placeholder or loading indicator
-                        ProgressView()
-                    @unknown default:
-                        // Placeholder or error handling image
-                        Image(systemName: "photo")
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 300, height: 200) // Adjust size as needed
-                            .clipped()
-                    }
-                }
-                .frame(width: 300, height: 200) // Adjust size as needed
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-            } else {
-                // Display text message
+        VStack {
+            HStack {
+                Spacer()
                 VStack(alignment: .trailing) {
                     Text(message.content)
-                        .font(.body)
-                        .padding(8)
-                        .foregroundColor(.white)
-                        .background(RoundedRectangle(cornerRadius: 16).fill(outgoingBubble))
-                    HStack {
-                        Spacer()
-                        Text(message.emoji ?? "") // Display timestamp
-                            .foregroundColor(.gray)
-                            .padding(.trailing, 8) // Add some padding between the timestamp and the edge of the bubble
-                        Text(message.timestamp )
-                            .foregroundColor(.gray)
-                            .font(.caption)
-
-                      
-                    }
+                        .padding()
+                        .background(bubbleColor)
+                        .cornerRadius(15)
                 }
             }
-            Image("outgoingTail")
-                .resizable()
-                .frame(width: 10, height: 10)
-                .padding(.trailing, -5)
-            if message.sender != service.currentUser {
-                Image(message.sender)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 30, height: 30)
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(Color.white, lineWidth: 2))
-                    .shadow(radius: 3)
-            }
-            if message.sender == service.currentUser {
-                Image(service.currentUser)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 30, height: 30)
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(Color.white, lineWidth: 2))
-                    .shadow(radius: 3)
-            }
+            Text(message.timestamp)
+                .font(.caption)
+                .foregroundColor(.gray)
+                .padding(.trailing)
         }
     }
 }
 
 struct IncomingDoubleLineMessage: View {
     let message: MessagesStructure
-    let incomingBubble = Color.gray
-    let service = Service()
-    
+    var bubbleColor: Color
+
     var body: some View {
-        HStack {
-            if message.sender != service.currentUser {
-                Image(message.sender)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 30, height: 30)
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(Color.white, lineWidth: 2))
-                    .shadow(radius: 3)
-            }
-            VStack(alignment: .leading) {
-                if message.type == "attachment" {
-                    // Display the image fetched from the attachment URL
-                    AsyncImage(url: URL(string: message.content)) { phase in
-                        switch phase {
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: 300, height: 200) // Adjust size as needed
-                                .clipped()
-                        case .failure:
-                            // Placeholder or error handling image
-                            Image(systemName: "photo")
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: 300, height: 200) // Adjust size as needed
-                                .clipped()
-                        case .empty:
-                            // Placeholder or loading indicator
-                            ProgressView()
-                        @unknown default:
-                            // Placeholder or error handling image
-                            Image(systemName: "photo")
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: 300, height: 200) // Adjust size as needed
-                                .clipped()
-                        }
-                    }
-                    .frame(width: 300, height: 200) // Adjust size as needed
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                } else {
-                    // Display text message
+        VStack {
+            HStack {
+                VStack(alignment: .leading) {
                     Text(message.content)
-                        .font(.body)
-                        .padding(8)
-                        .foregroundColor(.white)
-                        .background(RoundedRectangle(cornerRadius: 16).fill(incomingBubble))
-                    
-                    HStack {
-                        Text(message.timestamp) // Display timestamp
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                            .padding(.trailing, 8) // Add some padding between the timestamp and the edge of the bubble
-                        Text(message.emoji ?? "" )
-                            .foregroundColor(.gray)
-                        Spacer()
-                    }
+                        .padding()
+                        .background(bubbleColor)
+                        .cornerRadius(15)
                 }
+                Spacer()
             }
-            Image("incomingTail")
-                .resizable()
-                .frame(width: 10, height: 10)
-                .padding(.leading, -5)
-            if message.sender == service.currentUser {
-                Image(service.currentUser)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 30, height: 30)
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(Color.white, lineWidth: 2))
-                    .shadow(radius: 3)
-            }
+            Text(message.timestamp)
+                .font(.caption)
+                .foregroundColor(.gray)
+                .padding(.leading)
         }
     }
 }
+
 
 
 
@@ -409,6 +287,7 @@ struct MessengerView: View {
     @State private var messages: [MessagesStructure] = []
     @Environment(\.presentationMode) var presentationMode
     @StateObject private var socketObject = SocketObject.shared
+    var configuration: ChatsViewConfiguration
 
     var body: some View {
         VStack {
@@ -419,7 +298,6 @@ struct MessengerView: View {
                     Image(systemName: "arrow.left")
                         .padding(.leading, -10)
                 }.onDisappear {
-                    // Disconnect from socket when leaving the view
                     socketObject.socket.disconnect()
                 }
                 Image(senderName)
@@ -431,7 +309,7 @@ struct MessengerView: View {
                     .shadow(radius: 3)
                 VStack(alignment: .leading) {
                     Text(senderName)
-                        .font(.title)
+                        .font(configuration.font)
                         .foregroundColor(.black)
                         .padding(.leading, 2)
                 }
@@ -442,17 +320,17 @@ struct MessengerView: View {
                     .font(.caption)
                     .foregroundColor(.gray)
                 Spacer()
-     
-                    Image(systemName: "video.fill")
-                        .font(.title)
-                        .foregroundColor(.blue)
-                
+
+                Image(systemName: "video.fill")
+                    .font(.title)
+                    .foregroundColor(.blue)
+
                 Image(systemName: "phone.fill")
                     .font(.title)
                     .foregroundColor(.blue)
             }
             .padding()
-            
+
             GeometryReader { geometry in
                 ScrollViewReader { scrollView in
                     ScrollView {
@@ -460,9 +338,9 @@ struct MessengerView: View {
                             ForEach(messages.indices, id: \.self) { index in
                                 HStack {
                                     if messages[index].sender == service.currentUser {
-                                        OutgoingDoubleLineMessage(message: messages[index])
+                                        OutgoingDoubleLineMessage(message: messages[index], bubbleColor: configuration.outgoingMessageColor)
                                     } else {
-                                        IncomingDoubleLineMessage(message: messages[index])
+                                        IncomingDoubleLineMessage(message: messages[index], bubbleColor: configuration.incomingMessageColor)
                                     }
                                     if messages[index].sender != service.currentUser {
                                         EmojiButton(conversationId: conversationId, messageId: messages[index].id, service: service)
@@ -483,7 +361,7 @@ struct MessengerView: View {
                     }
                 }
             }
-            
+
             ComposeArea(conversationId: conversationId, currentUserId: service.currentUser)
         }
         .padding(.bottom)
@@ -495,8 +373,7 @@ struct MessengerView: View {
             onDisappear()
         }
     }
-    
-    
+
     func onAppear() {
         socketObject.socket.connect()
         
@@ -524,17 +401,18 @@ struct MessengerView: View {
         listenForMessages()
         socketObject.joinConversation(conversationId: conversationId)
     }
-    
+
     func onDisappear() {
         socketObject.socket.off("new_message_\(conversationId)")
     }
-    
+
     func listenForMessages() {
         socketObject.listenForMessages(conversationId: conversationId) { newMessages in
             self.messages = newMessages
         }
     }
 }
+
 
 
 
@@ -753,7 +631,7 @@ public struct ChatsView: View {
     @State private var showingDeleteAlert = false
     @State private var destinationView: AnyView? = nil
     @State private var navigateToMessengerView: Bool? = false
-    @State private var selectedConversationId: String? = nil // Define selectedConversationId here
+    @State private var selectedConversationId: String? = nil
 
     let service = Service() // Create an instance of the Service class
     var users: [User] // Accept users as parameter
@@ -761,7 +639,6 @@ public struct ChatsView: View {
     var apiKey: String
     var configuration: ChatsViewConfiguration
 
-    
     var filteredConversations: [Conversation] {
         if searchText.isEmpty {
             return conversations
@@ -769,6 +646,7 @@ public struct ChatsView: View {
             return conversations.filter { $0.participantName.localizedCaseInsensitiveContains(searchText) }
         }
     }
+
     // Initializer
     public init(users: [User], currentUser: String, apiKey: String, configuration: ChatsViewConfiguration = ChatsViewConfiguration()) {
         self.users = users
@@ -776,110 +654,115 @@ public struct ChatsView: View {
         self.apiKey = apiKey
         self.configuration = configuration
     }
-    
+
     public var body: some View {
-          NavigationView {
-              VStack {
-                  SearchBar(text: $searchText, placeholder: configuration.searchBarPlaceholder)
-                  ScrollView(.horizontal, showsIndicators: false) {
-                      HStack {
-                          ForEach(users) { user in
-                              UserView(user: user)
-                                  .padding(.horizontal, 10)
-                                  .onTapGesture {
-                                      service.createOrGetConversation(clickedUserId: user.name) { conversationId, error in
-                                          if let error = error {
-                                              print("Error creating/getting conversation: \(error)")
-                                              return
-                                          }
-                                          if let conversationId = conversationId {
-                                              DispatchQueue.main.async {
-                                                  self.selectedConversationId = conversationId
-                                                  self.navigateToMessengerView = true
-                                                  self.senderN = user.name
-                                              }
-                                          }
-                                      }
-                                  }
-                          }
-                      }
-                      .padding(.vertical)
-                      .background(
-                          NavigationLink(
-                              destination: MessengerView(senderName: senderN ?? "", conversationId: selectedConversationId ?? ""),
-                              tag: true,
-                              selection: $navigateToMessengerView
-                          ) {
-                              EmptyView()
-                          }
-                          .navigationBarBackButtonHidden(true)
-                      )
-                  }
-                  
-                  Divider()
-                  
-                  List {
-                      ForEach(filteredConversations) { conversation in
-                          NavigationLink(destination: MessengerView(senderName: conversation.participantName, conversationId: conversation.id)) {
-                              ConversationRow(conversation: conversation, font: configuration.font)
-                          }
-                          .swipeActions {
-                              Button(action: {
-                                  self.setConversationToDelete(conversation)
-                              }) {
-                                  Label("Delete", systemImage: "trash")
-                              }
-                              .tint(.red)
-                          }
-                      }
-                  }
-                  .listStyle(PlainListStyle())
-              }
-              .navigationTitle("CrossChat")
-              .navigationBarBackButtonHidden(true)
-              .alert(isPresented: $showingDeleteAlert) {
-                  Alert(
-                      title: Text("Delete Conversation"),
-                      message: Text("Are you sure you want to delete this conversation?"),
-                      primaryButton: .cancel(),
-                      secondaryButton: .destructive(Text("Delete")) {
-                          if let conversation = conversationToDelete {
-                              self.deleteConversation(conversation)
-                          }
-                      }
-                  )
-              }
-              .onAppear {
-                  service.fetchConversations(currentUser: service.currentUser) { json, error in
-                      if let error = error {
-                          print("Error fetching conversations: \(error)")
-                          return
-                      }
-                      if let conversationsData = json {
-                          self.conversations = conversationsData.compactMap { conversationData in
-                              let participants = conversationData["participants"] as? [String] ?? ["", ""]
-                              let participantName = participants.first(where: { $0 != service.currentUser }) ?? ""
-                              let convId = conversationData["_id"] as? String ?? ""
-                              return Conversation(
-                                  id: convId,
-                                  participantName: participantName,
-                                  lastMessage: (conversationData["messages"] as? [[String: Any]])?.last?["content"] as? String ?? "",
-                                  timestamp: Date()
-                              )
-                          }
-                      }
-                  }
-              }
-          }
-      }
+        NavigationView {
+            VStack {
+                SearchBar(text: $searchText, placeholder: configuration.searchBarPlaceholder)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack {
+                        ForEach(users) { user in
+                            UserView(user: user, font: configuration.font)
+                                .padding(.horizontal, 10)
+                                .onTapGesture {
+                                    service.createOrGetConversation(clickedUserId: user.name) { conversationId, error in
+                                        if let error = error {
+                                            print("Error creating/getting conversation: \(error)")
+                                            return
+                                        }
+                                        if let conversationId = conversationId {
+                                            DispatchQueue.main.async {
+                                                self.selectedConversationId = conversationId
+                                                self.navigateToMessengerView = true
+                                                self.senderN = user.name
+                                            }
+                                        }
+                                    }
+                                }
+                        }
+                    }
+                    .padding(.vertical)
+                    .background(
+                        NavigationLink(
+                            destination: MessengerView(senderName: senderN ?? "", conversationId: selectedConversationId ?? "", configuration: configuration),
+                            tag: true,
+                            selection: $navigateToMessengerView
+                        ) {
+                            EmptyView()
+                        }
+                        .navigationBarBackButtonHidden(true)
+                    )
+                }
+                .background(configuration.backgroundColor)
 
+                Divider()
 
-    
+                List {
+                    ForEach(filteredConversations) { conversation in
+                        NavigationLink(destination: MessengerView(senderName: conversation.participantName, conversationId:conversation.id, configuration: configuration)) {
+                            ConversationRow(conversation: conversation, font: configuration.font)
+                        }
+                        .swipeActions {
+                            Button(action: {
+                                self.setConversationToDelete(conversation)
+                            }) {
+                                Label("Delete", systemImage: "trash")
+                            }
+                            .tint(.red)
+                        }
+                    }
+                }
+                .listStyle(PlainListStyle())
+            }
+            .navigationTitle("CrossChat")
+            .navigationBarBackButtonHidden(true)
+            .alert(isPresented: $showingDeleteAlert) {
+                Alert(
+                    title: Text("Delete Conversation"),
+                    message: Text("Are you sure you want to delete this conversation?"),
+                    primaryButton: .cancel(),
+                    secondaryButton: .destructive(Text("Delete")) {
+                        if let conversation = conversationToDelete {
+                            self.deleteConversation(conversation)
+                        }
+                    }
+                )
+            }
+            .onAppear {
+                service.fetchConversations(currentUser: service.currentUser) { json, error in
+                    if let error = error {
+                        print("Error fetching conversations: \(error)")
+                        return
+                    }
+
+                    if let conversationsData = json {
+                        self.conversations = conversationsData.compactMap { conversationData in
+                            let participants = conversationData["participants"] as? [String] ?? ["", ""]
+                            let participantName = participants.first(where: { $0 != service.currentUser }) ?? ""
+                            let convId = conversationData["_id"] as? String ?? "" // Get the conversation ID
+
+                            print(participants)
+                            print(participantName)
+
+                            return Conversation(
+                                id:convId ,
+                                participantName: participantName,
+                                lastMessage: (conversationData["messages"] as? [[String: Any]])?.last?["content"] as? String ?? "",
+                                timestamp: Date() // You can parse the timestamp here
+                            )
+                        }
+                    }
+
+                }
+            }
+        }
+    }
+
     private func setConversationToDelete(_ conversation: Conversation) {
         self.conversationToDelete = conversation
         self.showingDeleteAlert = true
     }
-    
+
     private func deleteConversation(_ conversation: Conversation) {
         service.deleteConversation(conversationId: conversation.id) { error in
             if let error = error {
@@ -893,12 +776,13 @@ public struct ChatsView: View {
             }
         }
     }
-
 }
+
 
 
 struct UserView: View {
     let user: User
+    var font: Font
 
     var body: some View {
         VStack {
@@ -910,10 +794,10 @@ struct UserView: View {
                 .overlay(Circle().stroke(Color.white, lineWidth: 2))
                 .shadow(radius: 3)
             Text(user.name)
+                .font(font)
         }
     }
 }
-
 
 struct ConversationRow: View {
     let conversation: Conversation
@@ -971,6 +855,8 @@ struct SearchBar: View {
         }
     }
 }
+
+
 
 
 
